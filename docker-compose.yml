@@ -1,0 +1,38 @@
+version: '3.9'
+
+services:
+  db:
+    build:
+      context: bin/mysql
+    restart: always
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+  app:
+    build:
+      context: bin/nextcloud
+    restart: always
+    links:
+      - db
+    volumes:
+      - ./data/nextcloud:/var/www/html
+    environment:
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_HOST=db
+  web:
+    build:
+      context: bin/nginx
+    restart: always
+    ports:
+      - ${PORT}:80
+    links:
+      - app
+    volumes:
+      - ./config/nginx/default.conf:/etc/nginx/nginx.conf:ro
