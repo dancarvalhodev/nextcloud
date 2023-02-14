@@ -4,6 +4,7 @@ services:
   db:
     build:
       context: bin/mysql
+    container_name: nextcloud_mysql
     restart: always
     command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
     volumes:
@@ -16,7 +17,10 @@ services:
   app:
     build:
       context: bin/nextcloud
+    container_name: nextcloud_app
     restart: always
+    ports:
+      - ${PORT}:80
     links:
       - db
     volumes:
@@ -26,13 +30,3 @@ services:
       - MYSQL_DATABASE=nextcloud
       - MYSQL_USER=nextcloud
       - MYSQL_HOST=db
-  web:
-    build:
-      context: bin/nginx
-    restart: always
-    ports:
-      - ${PORT}:80
-    links:
-      - app
-    volumes:
-      - ./config/nginx/default.conf:/etc/nginx/nginx.conf:ro
